@@ -1,0 +1,11 @@
+[package]
+name = "pdfjoin-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.9", features = ["multipart"] }
+tempfile = "3.27.0"
+tokio = { version = "1.52.1", features = ["macros", "rt-multi-thread", "fs"] }
+tower-http = { version = "0.6.8", features = ["trace"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
