@@ -1,6 +1,6 @@
 pub mod pdfjoin;
 
-use std::{fmt::Display, io::Write, sync::Arc};
+use std::{fmt::Display, sync::Arc};
 
 use axum::{
     Router,
@@ -11,6 +11,11 @@ use axum::{
 };
 use tempfile::NamedTempFile;
 use tower_http::trace::TraceLayer;
+
+use tokio::{
+    fs::{File, read},
+    io::AsyncWriteExt,
+};
 
 use crate::pdfjoin::join;
 
@@ -45,12 +50,15 @@ async fn join_pdfs(
     let mut files = Vec::new();
 
     while let Some(mut field) = multipart.next_field().await.map_err(internal_error)? {
-        let mut file = NamedTempFile::new().map_err(internal_error)?;
+        let temp = NamedTempFile::new().map_err(internal_error)?;
+        let (std_file, temp_file) = temp.into_parts();
+        let mut file = File::from_std(std_file);
+
         while let Some(chunk) = field.chunk().await.map_err(internal_error)? {
-            file.write_all(&chunk).map_err(internal_error)?;
+            file.write_all(&chunk).await.map_err(internal_error)?;
         }
 
-        files.push(file.into_temp_path());
+        files.push(temp_file);
     }
 
     if files.len() != 2 {
@@ -62,9 +70,7 @@ async fn join_pdfs(
 
     let output = join(files[0].as_ref(), files[1].as_ref()).map_err(internal_error)?;
 
-    let pdf_bytes = tokio::fs::read(output.path())
-        .await
-        .map_err(internal_error)?;
+    let pdf_bytes = read(output.path()).await.map_err(internal_error)?;
 
     Ok((
         [
