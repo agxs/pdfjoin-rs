@@ -4,6 +4,7 @@ use std::{fmt::Display, sync::Arc};
 
 use axum::{
     Router,
+    body::Body,
     extract::{DefaultBodyLimit, Multipart, State},
     http::{StatusCode, header},
     response::IntoResponse,
@@ -12,10 +13,8 @@ use axum::{
 use tempfile::NamedTempFile;
 use tower_http::trace::TraceLayer;
 
-use tokio::{
-    fs::{File, read},
-    io::AsyncWriteExt,
-};
+use tokio::{fs::File, io::AsyncWriteExt};
+use tokio_util::io::ReaderStream;
 
 use crate::pdfjoin::join;
 
@@ -70,7 +69,9 @@ async fn join_pdfs(
 
     let output = join(files[0].as_ref(), files[1].as_ref()).map_err(internal_error)?;
 
-    let pdf_bytes = read(output.path()).await.map_err(internal_error)?;
+    let std_file = output.reopen().map_err(internal_error)?;
+    let file = File::from_std(std_file);
+    let stream = ReaderStream::new(file);
 
     Ok((
         [
@@ -80,7 +81,7 @@ async fn join_pdfs(
                 "attachment; filename=merged.pdf",
             ),
         ],
-        pdf_bytes,
+        Body::from_stream(stream),
     ))
 }
 
