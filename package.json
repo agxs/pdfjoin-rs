@@ -1,0 +1,11 @@
+{
+  "name": "pdfjoin-rs-ui",
+  "private": true,
+  "scripts": {
+    "build:frontend": "tsc --project tsconfig.json"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "typescript": "^6.0.3"
+  }
+}

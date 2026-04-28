@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>pdfjoin-rs</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <script type="module" src="/static/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <p class="eyebrow">Local PDF merge</p>
+        <h1>Join two PDF files</h1>
+        <p class="lede">
+          Drop two files into the window or click the picker. The order shown below is the order
+          used for the merged output.
+        </p>
+
+        <form id="upload-form" class="upload-form">
+          <input id="file-input" class="sr-only" type="file" accept="application/pdf,.pdf" multiple>
+
+          <button id="drop-zone" class="drop-zone" type="button" aria-describedby="drop-hint">
+            <span class="drop-title">Drop PDFs here</span>
+            <span id="drop-hint" class="drop-hint">or click to choose exactly two files</span>
+          </button>
+
+          <ol id="file-list" class="file-list" aria-live="polite">
+            <li class="file-slot is-empty">File 1</li>
+            <li class="file-slot is-empty">File 2</li>
+          </ol>
+
+          <div class="actions">
+            <button id="submit-button" class="primary" type="submit" disabled>Merge and download</button>
+            <button id="clear-button" class="secondary" type="button" disabled>Clear</button>
+          </div>
+
+          <div class="status-stack" aria-live="polite">
+            <progress id="progress-bar" class="progress" value="0" max="100" hidden></progress>
+            <p id="status-text" class="status-text"></p>
+            <p id="error-text" class="error-text" role="alert"></p>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

@@ -2,16 +2,17 @@ pub mod pdfjoin;
 
 use std::{fmt::Display, sync::Arc};
 
+use askama::Template;
 use axum::{
     Router,
     body::Body,
     extract::{DefaultBodyLimit, Multipart, State},
     http::{StatusCode, header},
-    response::IntoResponse,
-    routing::post,
+    response::{Html, IntoResponse},
+    routing::{get, post},
 };
 use tempfile::NamedTempFile;
-use tower_http::trace::TraceLayer;
+use tower_http::{services::ServeDir, trace::TraceLayer};
 
 use tokio::{fs::File, io::AsyncWriteExt};
 use tokio_util::io::ReaderStream;
@@ -20,6 +21,10 @@ use crate::pdfjoin::join;
 
 #[derive(Clone, Default)]
 struct AppState {}
+
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate;
 
 #[tokio::main]
 async fn main() {
@@ -30,7 +35,9 @@ async fn main() {
     let state = Arc::new(AppState::default());
 
     let app = Router::new()
+        .route("/", get(index))
         .route("/join", post(join_pdfs))
+        .nest_service("/static", ServeDir::new("static"))
         .layer(DefaultBodyLimit::max(50 * 1024 * 1024))
         .layer(TraceLayer::new_for_http())
         .with_state(state);
@@ -40,6 +47,11 @@ async fn main() {
         .unwrap();
 
     axum::serve(listener, app).await.unwrap();
+}
+
+async fn index() -> Result<Html<String>, (StatusCode, String)> {
+    let page = IndexTemplate.render().map_err(internal_error)?;
+    Ok(Html(page))
 }
 
 async fn join_pdfs(

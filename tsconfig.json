@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["dom", "es2022"],
+    "strict": true,
+    "noEmitOnError": true,
+    "skipLibCheck": true,
+    "rootDir": "frontend",
+    "outDir": "static"
+  },
+  "include": ["frontend/**/*.ts"]
+}
