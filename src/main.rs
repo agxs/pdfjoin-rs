@@ -60,14 +60,14 @@ async fn join_pdfs(
         files.push(temp_file);
     }
 
-    if files.len() != 2 {
+    if files.len() < 2 || files.len() > 20 {
         return Err((
             StatusCode::BAD_REQUEST,
-            String::from("Incorrect file count supplied"),
+            String::from("Incorrect file count supplied, must be at least 1 with a max of 20"),
         ));
     }
 
-    let output = join(files[0].as_ref(), files[1].as_ref()).map_err(internal_error)?;
+    let output = join(files).map_err(internal_error)?;
 
     let std_file = output.reopen().map_err(internal_error)?;
     let file = File::from_std(std_file);
